@@ -33,6 +33,24 @@ class Shop:
         }
 
     def display_items(self):
+        print("\nItems available for purchase:")
+        for item, price in self.items.items():
+            print(f"{item}: ${price} for 20 pounds")
+
+    def get_item_choice(self):
+        """Let the player choose an item"""
+        while True:
+            item_choice = input("\nEnter the name of the item you want to buy (or 'exit' to leave the shop): ").strip().lower()
+            if item_choice in self.items:
+                return item_choice
+            elif item_choice == "exit":
+                return None
+            else:
+                print("Invalid item. Please choose a valid item or type 'exit'.")
+
+    def get_quantity_choice(self):
+        """Let the player choose the quantity to buy"""
+        while True:
             try:
                 quantity = int(input("How many 20-pound units would you like to buy? "))
                 if quantity > 0:
