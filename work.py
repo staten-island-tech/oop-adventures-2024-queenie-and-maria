@@ -3,8 +3,8 @@ import sys
 class Player:
     def __init__(self, name, currency=400):
         self.name = name
-        self.currency = currency  # Starting currency
-        self.inventory = {}  # Inventory stores items and their quantities
+        self.currency = currency 
+        self.inventory = {}  
 
     def __str__(self):
         return f"Player: {self.name}, Currency: ${self.currency}, Inventory: {self.inventory}"
@@ -22,44 +22,57 @@ class Player:
         else:
             print(f"Not enough currency to buy {quantity} {item}(s). You need ${total_price - self.currency} more.")
 
-
 class Shop:
     def __init__(self):
-        # Define items and their prices (price per unit for 20 pounds)
+        # Adjusted prices and weights for each item
         self.items = {
-            "Food": 10,  # $10 per 20 pounds
-            "Medicine": 15,  # $15 per 20 pounds
-            "Ammunition": 25  # $25 per 20 pounds
+            "Food": {"price": 10, "weight": 20},  
+            "Oxen": {"price": 50, "weight": 1},   
+            "Clothes": {"price": 20, "weight": 5}  
         }
 
     def display_items(self):
         print("\nItems available for purchase:")
-        for item, price in self.items.items():
-            print(f"{item}: ${price} for 20 pounds")
+        for item, details in self.items.items():
+            print(f"{item}: ${details['price']} for {details['weight']} pounds")
 
     def get_item_choice(self):
         """Let the player choose an item"""
         while True:
             item_choice = input("\nEnter the name of the item you want to buy (or 'exit' to leave the shop): ").strip().lower()
-            if item_choice in self.items:
-                return item_choice
+            # Normalize input to match the keys
+            if item_choice in [item.lower() for item in self.items]:
+                # Return the selected item in its proper format (case-sensitive)
+                return next(item for item in self.items if item.lower() == item_choice)
             elif item_choice == "exit":
                 return None
             else:
                 print("Invalid item. Please choose a valid item or type 'exit'.")
 
-    def get_quantity_choice(self):
+    def get_quantity_choice(self, item):
         """Let the player choose the quantity to buy"""
         while True:
             try:
-                quantity = int(input("How many 20-pound units would you like to buy? "))
+                # Get price and weight for the selected item
+                price_per_unit = self.items[item]["price"]
+                weight_per_unit = self.items[item]["weight"]
+                
+                # For Oxen, it's per item, others are in pounds
+                if item == "Oxen":
+                    quantity = int(input(f"How many {item} would you like to buy? "))
+                else:
+                    quantity = int(input(f"How many pounds of {item} would you like to buy? "))
+                
                 if quantity > 0:
-                    return quantity
+                    if item == "Oxen":
+                        total_cost = price_per_unit * quantity  # Oxen are bought per unit
+                    else:
+                        total_cost = price_per_unit * (quantity // weight_per_unit)  # Food and Clothes are per pound
+                    return quantity, total_cost
                 else:
                     print("Quantity must be greater than 0.")
             except ValueError:
                 print("Please enter a valid number.")
-
 
 class Game:
     def __init__(self):
@@ -80,7 +93,7 @@ class Game:
                 companion = Player(companion_name)
                 self.players.append(companion)
             else:
-                break  # Stop if the user presses Enter without entering a name
+                break  
 
     def start_game(self):
         """Start the game and print the player and companions"""
@@ -92,7 +105,6 @@ class Game:
         for player in self.players:
             print(player)
 
-        # Create a shop instance
         shop = Shop()
 
         # Main shopping loop
@@ -113,13 +125,11 @@ class Game:
                     print("Exiting the shop. Thank you for visiting!")
                     break
                 
-                # Get the quantity the player wants to buy
-                quantity = shop.get_quantity_choice()
+                quantity, total_cost = shop.get_quantity_choice(item_choice)
                 
                 # Buy the item
-                price_per_unit = shop.items[item_choice.capitalize()]  # Capitalize item to match keys
+                price_per_unit = shop.items[item_choice.capitalize()]["price"]
                 player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
-
 
 def start_screen():
     """Start screen to begin the game"""
@@ -147,5 +157,6 @@ def start_screen():
 # Run the start screen
 if __name__ == "__main__":
     start_screen()
+
 
 
