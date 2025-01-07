@@ -77,6 +77,8 @@ class Shop:
 class Game:
     def __init__(self):
         self.players = []  # List to store player and companions
+        self.day = 1
+        self.month = 1
 
     def get_player_name(self):
         """Ask for the player's name and create a Player object"""
@@ -95,6 +97,18 @@ class Game:
             else:
                 break  
 
+    def skip_to_day_7(self):
+        """Skip to day 7"""
+        print("\nSkipping to Day 7...")
+        self.day = 7
+        print(f"\nIt is now Day {self.day}!")
+
+    def skip_to_next_month(self):
+        """Skip to next month"""
+        self.month += 1
+        self.day = 1  # Start at the first day of the new month
+        print(f"\nIt is now Month {self.month}, Day {self.day}!")
+
     def start_game(self):
         """Start the game and print the player and companions"""
         print("\nWelcome to The Oregon Trail!")
@@ -105,31 +119,54 @@ class Game:
         for player in self.players:
             print(player)
 
+        # Announce that it's Day 1
+        print("\nIt is Day 1! The adventure begins!")
+
         shop = Shop()
 
-        # Main shopping loop
-        for player in self.players:
-            print(f"\n{player.name}'s Shop Menu")
+        # Day 1 to Day 7, then Month 1 to Month 6
+        while self.month <= 6:
+            if self.day == 1:  # Starting a new month
+                self.skip_to_next_month()
 
-            while True:
-                # Show player status
-                print(f"\nYour current status: {player}")
-                
-                # Display shop items
-                shop.display_items()
+            if self.month == 1 and self.day == 1:  # If it's the start of the game (Day 1)
+                print("\nDay 1: The adventure begins!")
+            
+            # Loop for shopping on each day of the month
+            for player in self.players:
+                print(f"\n{player.name}'s Shop Menu")
 
-                # Let the player choose an item
-                item_choice = shop.get_item_choice()
+                while True:
+                    # Show player status
+                    print(f"\nYour current status: {player}")
+                    
+                    # Display shop items
+                    shop.display_items()
 
-                if item_choice is None:
-                    print("Exiting the shop. Thank you for visiting!")
-                    break
-                
-                quantity, total_cost = shop.get_quantity_choice(item_choice)
-                
-                # Buy the item
-                price_per_unit = shop.items[item_choice.capitalize()]["price"]
-                player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
+                    # Let the player choose an item
+                    item_choice = shop.get_item_choice()
+
+                    if item_choice is None:
+                        print("Exiting the shop. Thank you for visiting!")
+                        break
+                    
+                    quantity, total_cost = shop.get_quantity_choice(item_choice)
+                    
+                    # Buy the item
+                    price_per_unit = shop.items[item_choice.capitalize()]["price"]
+                    player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
+
+            if self.day == 7 and self.month == 1:  # Skip to Day 7 after the first week
+                self.skip_to_day_7()
+
+            if self.day == 7:  # Once Day 7 is complete, skip to the next month
+                if self.month < 6:  # Move to the next month if we haven't reached Month 6
+                    self.skip_to_next_month()
+
+            # Once the month is over, move to the next month
+            self.day = 1  # Reset day to 1 for the next month
+
+            print(f"\nThe day is over. It's the end of Month {self.month}, Day {self.day}. Moving on to the next month...\n")
 
 def start_screen():
     """Start screen to begin the game"""
@@ -157,6 +194,3 @@ def start_screen():
 # Run the start screen
 if __name__ == "__main__":
     start_screen()
-
-
-
