@@ -1,10 +1,11 @@
+import random
 import sys
 
 class Player:
     def __init__(self, name, currency=400):
         self.name = name
         self.currency = currency 
-        self.inventory = {}  
+        self.inventory = {}
 
     def __str__(self):
         return f"Player: {self.name}, Currency: ${self.currency}, Inventory: {self.inventory}"
@@ -87,15 +88,19 @@ class Game:
         self.players.append(player)
 
     def get_companions(self):
-        """Ask for companions (up to 3)"""
-        print("Now, you can add up to 3 companions.")
-        for i in range(1, 4):
-            companion_name = input(f"Enter the name of companion {i} (or press Enter to skip): ").strip()
-            if companion_name:  
+        """Ask for 2 companions"""
+        print("You must add 2 companions.")
+        for i in range(1, 3):  # Ensure exactly 2 companions are added
+            companion_name = input(f"Enter the name of companion {i}: ").strip()
+            if companion_name:
                 companion = Player(companion_name)
                 self.players.append(companion)
             else:
-                break  
+                # Default companion names if the player doesn't provide one
+                companion_name = f"Companion {i}"
+                companion = Player(companion_name)
+                self.players.append(companion)
+                print(f"Companion {i} added with default name: {companion_name}")
 
     def skip_to_day_7(self):
         """Skip to day 7"""
