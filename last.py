@@ -1,4 +1,3 @@
-
 import random
 import sys
 
@@ -119,12 +118,6 @@ class Game:
             else:
                 break  
 
-    def skip_to_day_7(self):
-        """Skip to day 7"""
-        print("\nSkipping to Day 7...")
-        self.day = 7
-        print(f"\nIt is now Day {self.day}!")
-
     def skip_to_next_month(self):
         """Skip to next month"""
         self.month += 1
@@ -144,32 +137,25 @@ class Game:
         print("\nIt's time to prepare for the journey! Let's visit the shop.")
         shop = Shop()
 
+        # One shop day at the beginning of the game
+        print(f"\n{self.players[0].name}'s Shop Menu")
         while True:
-            print(f"\nTotal Party Currency: ${self.currency}")
-            main_player = self.players[0]  
-            print(f"\n{main_player.name}'s Shop Menu")
+            print(f"\nYour current status: {self.players[0]}")
+            shop.display_items()
 
-            while True:
-                print(f"\nYour current status: {main_player}")
-                shop.display_items()
+            item_choice = shop.get_item_choice()
 
-                item_choice = shop.get_item_choice()
-
-                if item_choice is None:
-                    print("Exiting the shop. Thank you for visiting!")
-                    break
-                 # Ask if player wants to buy oxen, skip if invalid
-                quantity, total_cost = shop.get_quantity_choice(item_choice)
-                
-                price_per_unit = shop.items[item_choice.capitalize()]["price"]
-                if self.currency >= total_cost:
-                    self.currency -= total_cost
-                    main_player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
-                else:
-                    print("Not enough total currency to purchase that item. UR BROKE, get a job.")
-
-            if input("\nDo you want to continue shopping? (yes/no): ").strip().lower() != "yes":
+            if item_choice is None:
+                print("Exiting the shop. Thank you for visiting!")
                 break
+
+            quantity, total_cost = shop.get_quantity_choice(item_choice)
+            price_per_unit = shop.items[item_choice.capitalize()]["price"]
+            if self.currency >= total_cost:
+                self.currency -= total_cost
+                self.players[0].buy_item(item_choice.capitalize(), quantity, price_per_unit)
+            else:
+                print("Not enough total currency to purchase that item. UR BROKE, get a job.")
 
         print("\nIt's now time to choose your path.")
         path_choice = divergent_paths()
@@ -211,30 +197,45 @@ class Game:
                         
                         player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
 
-            if self.day == 7 and self.month == 1:
-                self.skip_to_day_7()
-
-            if self.day == 7: 
-                if self.month < 6:
-                    self.skip_to_next_month()
-
             self.day = 1  
 
             if self.month == 2:  # Scenario in month 2
                 self.buy_oxen()
 
-            if self.month == 3:  # Lake scenario in month 3
-                self.lake()
-
-            if self.month == 4:  # Tragedy in month 4
-                self.tragedy()
-
-            if self.month == 5:  # Wild beast encounter month 5
-                self.tragedy()
-
             if self.month == 6:  # End of journey
                 print("Congratulations on completing the journey, u survived. I guess.!")
                 break
 
+    def oxen_death_event(self):
+        """Day 2 Oxen Death Event"""
+        print("\nDay 2: Your oxen ate something weird and got sick, and died.")
+        if self.players[0].currency >= 100:  # Check if player has enough money to buy oxen
+            decision = input("Do you want to buy 2 new oxen for $100? (yes/no): ").lower()
+            if decision == "yes":
+                self.players[0].currency -= 100
+                self.players[0].inventory["Oxen"] += 2
+                print("You have successfully purchased 2 new oxen!")
+            elif decision == "no":
+                print("You chose not to replace the oxen.")
+                print("You now have fewer oxen to continue the journey.")
+        else:
+            print("You do not have enough currency to replace the oxen!")
+            print("You must continue your journey with fewer oxen.")
 
-
+    def wild_animal_event(self):
+        """Wild animal encounter on Day 5"""
+        print("\nDay 5: You encounter a wild animal! It looks dangerous and could attack you.")
+        decision = input("Do you want to fight or avoid the animal? (fight/avoid): ").lower()
+        
+        if decision == "fight":
+            survival_chance = random.random()  # 50% chance of survival
+            if survival_chance < 0.5:
+                print("You bravely fight the animal and survive the encounter!")
+            else:
+                print("The animal overpowers you. You have perished. Game Over!")
+                sys.exit()  # End the game if the player dies during the fight
+        elif decision == "avoid":
+            print("You decide to avoid the animal. You safely continue your journey.")
+        else:
+            print("Invalid input. Please choose 'fight' or 'avoid'.")
+            self.wild_animal_event()  # Recurse if invalid input
