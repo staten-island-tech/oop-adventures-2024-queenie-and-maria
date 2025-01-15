@@ -48,7 +48,6 @@ class Player:
 
 class Shop:
     def __init__(self):
-        # Adjusted prices and weights for each item
         self.items = {
             "Food": {"price": 10, "weight": 20},  
             "Oxen": {"price": 50, "weight": 1},   
@@ -64,9 +63,7 @@ class Shop:
         """Let the player choose an item"""
         while True:
             item_choice = input("\nEnter the name of the item you want to buy (or 'exit' to leave the shop): ").strip().lower()
-            # Normalize input to match the keys
             if item_choice in [item.lower() for item in self.items]:
-                # Return the selected item in its proper format (case-sensitive)
                 return next(item for item in self.items if item.lower() == item_choice)
             elif item_choice == "exit":
                 return None
@@ -77,11 +74,9 @@ class Shop:
         """Let the player choose the quantity to buy"""
         while True:
             try:
-                # Get price and weight for the selected item
                 price_per_unit = self.items[item]["price"]
                 weight_per_unit = self.items[item]["weight"]
                 
-                # For Oxen, it's per item, others are in pounds
                 if item == "Oxen":
                     quantity = int(input(f"How many {item} would you like to buy? "))
                 else:
@@ -100,15 +95,15 @@ class Shop:
 
 class Game:
     def __init__(self):
-        self.players = []  # List to store player and companions
+        self.players = []  
         self.day = 1
         self.month = 1
-        self.currency = 400  # Shared currency for the entire party
+        self.currency = 400  
 
     def get_player_name(self):
         """Ask for the player's name and create a Player object"""
         player_name = input("Enter your name: ").strip()
-        player = Player(player_name, self.currency)  # Use shared currency for the player
+        player = Player(player_name, self.currency)  
         self.players.append(player)
 
     def get_companions(self):
@@ -117,7 +112,7 @@ class Game:
         for i in range(1, 4):
             companion_name = input(f"Enter the name of companion {i} (or press Enter to skip): ").strip()
             if companion_name:  
-                companion = Player(companion_name, self.currency)  # Use shared currency for companions
+                companion = Player(companion_name, self.currency)  
                 self.players.append(companion)
             else:
                 break  
@@ -131,7 +126,7 @@ class Game:
     def skip_to_next_month(self):
         """Skip to next month"""
         self.month += 1
-        self.day = 1  # Start at the first day of the new month
+        self.day = 1  
         print(f"\nIt is now Month {self.month}, Day {self.day}!")
 
     def start_game(self):
@@ -144,24 +139,18 @@ class Game:
         for player in self.players:
             print(player)
 
-        # Shopping phase before trail selection
         print("\nIt's time to prepare for the journey! Let's visit the shop.")
         shop = Shop()
 
-        # Loop for shopping only for the main player
         while True:
             print(f"\nTotal Party Currency: ${self.currency}")
-            main_player = self.players[0]  # Only the first player (main player) can buy items
+            main_player = self.players[0]  
             print(f"\n{main_player.name}'s Shop Menu")
 
             while True:
-                # Show player status
                 print(f"\nYour current status: {main_player}")
-                
-                # Display shop items
                 shop.display_items()
 
-                # Let the main player choose an item
                 item_choice = shop.get_item_choice()
 
                 if item_choice is None:
@@ -170,7 +159,6 @@ class Game:
                 
                 quantity, total_cost = shop.get_quantity_choice(item_choice)
                 
-                # Buy the item
                 price_per_unit = shop.items[item_choice.capitalize()]["price"]
                 if self.currency >= total_cost:
                     self.currency -= total_cost
@@ -181,34 +169,27 @@ class Game:
             if input("\nDo you want to continue shopping? (yes/no): ").strip().lower() != "yes":
                 break
 
-        # After shopping, proceed with divergent paths
         print("\nIt's now time to choose your path.")
         path_choice = divergent_paths()
-        if not path_choice:  # If the player dies, exit the game
+        if not path_choice: 
             print("Game Over!")
             return
 
-        # Day 1 to Day 7, then Month 1 to Month 6
         while self.month <= 6:
-            if self.day == 1:  # Starting a new month
+            if self.day == 1:  
                 self.skip_to_next_month()
 
-            if self.month == 1 and self.day == 1:  # If it's the start of the game (Day 1)
+            if self.month == 1 and self.day == 1:  
                 print("\nDay 1: The adventure begins!")
-            
-            # Loop for shopping on each day of the month (still only for the main player)
+
             for player in self.players:
-                if player == self.players[0]:  # Only the main player can shop
+                if player == self.players[0]:  
                     print(f"\n{player.name}'s Shop Menu")
 
                     while True:
-                        # Show player status
                         print(f"\nYour current status: {player}")
-                        
-                        # Display shop items
                         shop.display_items()
 
-                        # Let the player choose an item
                         item_choice = shop.get_item_choice()
 
                         if item_choice is None:
@@ -217,21 +198,87 @@ class Game:
                         
                         quantity, total_cost = shop.get_quantity_choice(item_choice)
                         
-                        # Buy the item
-                        price_per_unit = shop.items[item_choice.capitalize()]["price"]
                         player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
 
-            if self.day == 7 and self.month == 1:  # Skip to Day 7 after the first week
+            if self.day == 7 and self.month == 1:
                 self.skip_to_day_7()
 
-            if self.day == 7:  # Once Day 7 is complete, skip to the next month
-                if self.month < 6:  # Move to the next month if we haven't reached Month 6
+            if self.day == 7: 
+                if self.month < 6:
                     self.skip_to_next_month()
 
-            # Once the month is over, move to the next month
-            self.day = 1  # Reset day to 1 for the next month
+            self.day = 1  
 
-            print(f"\nThe day is over. It's the end of Month {self.month}, Day {self.day}. Moving on to the next month...\n")
+            if self.month == 2:  # Scenario in month 2
+                self.buy_oxen()
+
+            if self.month == 3:  # Lake scenario in month 3
+                self.lake()
+
+            if self.month == 4:  # Tragedy in month 4
+                self.tragedy()
+
+            if self.month == 6:  # End of journey
+                print("Congratulations on completing the journey!")
+                break
+
+    def buy_oxen(self):
+        """Ask if the player wants to buy oxen at the start of the game"""
+        oxen_choice = input("Do you want to buy oxen for your journey? (yes/no): ").lower()
+        if oxen_choice == "yes":
+            return True  # Player buys oxen
+        elif oxen_choice == "no":
+            return False  # Player does not buy oxen
+        else:
+            print("Invalid choice. Please choose 'yes' or 'no'.")
+            return self.buy_oxen()  # Recurse if invalid input
+
+    def oxen_event(self, oxen_have):
+        """Simulate oxen dying during the journey"""
+        if oxen_have:
+            print("A sudden storm strikes! One of your oxen has died!")
+            replacement = input("Do you want to replace the oxen? (yes/no): ").lower()
+            if replacement == "yes":
+                print("You managed to replace your oxen. You can continue the journey.")
+            elif replacement == "no":
+                print("Without your oxen, you struggle to move forward. You cannot continue the journey.")
+                print("You have perished. Game Over!")
+                sys.exit() 
+            else:
+                print("Invalid choice. Please choose 'yes' or 'no'.")
+                self.oxen_event(True) 
+        else:
+            print("Without oxen, you face a harsh storm and perish. Game Over!")
+            sys.exit()  
+
+    def lake(self):
+        """Lake crossing decision"""
+        print("You have reached a lake in your third week of the trail. You could either risk your life to cross the lake, or take the safe option and go around the lake, but the trail will be longer.")
+        
+        decision = input("Do you want to risk crossing the lake? (yes/no): ").lower()
+        
+        if decision == "yes":
+            def survival_chance():
+                outcome = random.random()
+                if outcome < 0.5:
+                    return "Survival"
+                else:
+                    return "No Survival"
+            
+            result = survival_chance()
+            print(f"Result: {result}")
+            
+        elif decision == "no":
+            print("You chose the safer route. Your journey will take longer.")
+            print(f"The trail is now extended by an additional month.")
+        else:
+            print("Invalid input. Please choose 'yes' or 'no'.")
+
+    def tragedy(self):
+        """Tragedy event"""
+        if len(self.players) >= 2:
+            print("Oh no! The third person you brought on the trip has tragically died.")
+            print("This marks the end of their journey.")
 
 def start_screen():
     """Start screen to begin the game"""
@@ -241,21 +288,19 @@ def start_screen():
     print("\nPress ENTER to Start the Adventure")
     print("Press ESC to Exit")
     
-    # Wait for user input to start the game or quit
     while True:
         user_input = input("\nYour choice: ").strip().lower()
         
-        if user_input == "":  # User presses ENTER to start the game
+        if user_input == "":  # Start the game
             print("\nStarting the game...\n")
-            game = Game()  # Create a Game instance
-            game.start_game()  # Start the game logic
+            game = Game()  
+            game.start_game()  
             break
-        elif user_input == "esc":  # User types "ESC" to quit the game
+        elif user_input == "esc":  # Exit the game
             print("\nExiting the game. Goodbye!")
             sys.exit()
         else:
             print("\nInvalid input. Please press ENTER to start or ESC to exit.")
 
-# Run the start screen
 if __name__ == "__main__":
     start_screen()

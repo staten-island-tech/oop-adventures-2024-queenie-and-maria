@@ -1,6 +1,7 @@
 import random
 import sys
 
+# Player Class
 class Player:
     def __init__(self, name, currency=400):
         self.name = name
@@ -23,6 +24,7 @@ class Player:
         else:
             print(f"Not enough currency to buy {quantity} {item}(s). You need ${total_price - self.currency} more.")
 
+# Shop Class
 class Shop:
     def __init__(self):
         # Adjusted prices and weights for each item
@@ -75,6 +77,28 @@ class Shop:
             except ValueError:
                 print("Please enter a valid number.")
 
+# Divergent Paths Function (Day 1)
+def divergent_paths():
+    print("You come to a fork in the trail. Two paths lie ahead:")
+    print("1. The Hard Path, a treacherous, narrow trail that could be dangerous but might offer rewards.")
+    print("2. The Easy Path, a gentle and wide trail that seems much safer, but it has its own dangers.")
+    
+    decision = input("Which path will you take? (hard/easy): ").lower()
+    
+    if decision == "hard":
+        print("You bravely take the Hard Path. It's difficult, but you manage to navigate through it.")
+        print("You survive the journey and continue on your way. Well done!")
+        return True  # Journey continues
+    elif decision == "easy":
+        print("You take the Easy Path, but as you stroll along, you don't notice the edge of a cliff.")
+        print("You accidentally fall off the cliff and perish. Game Over!")
+        return False  # Game over scenario due to death
+    else:
+        print("Invalid input. Please choose 'hard' or 'easy'.")
+        return divergent_paths()  # Repeat the decision if invalid
+
+
+# Game Class
 class Game:
     def __init__(self):
         self.players = []  # List to store player and companions
@@ -101,13 +125,7 @@ class Game:
                 companion = Player(companion_name)
                 self.players.append(companion)
                 print(f"Companion {i} added with default name: {companion_name}")
-
-    def skip_to_day_7(self):
-        """Skip to day 7"""
-        print("\nSkipping to Day 7...")
-        self.day = 7
-        print(f"\nIt is now Day {self.day}!")
-
+    
     def skip_to_next_month(self):
         """Skip to next month"""
         self.month += 1
@@ -124,54 +142,87 @@ class Game:
         for player in self.players:
             print(player)
 
-        # Announce that it's Day 1
-        print("\nIt is Day 1! The adventure begins!")
-
+        # Shopping phase before trail selection
+        print("\nIt's time to prepare for the journey! Let's visit the shop.")
         shop = Shop()
 
-        # Day 1 to Day 7, then Month 1 to Month 6
+        # Loop for shopping only for the main player
+        while True:
+            print(f"\nTotal Party Currency: ${self.currency}")
+            main_player = self.players[0]  # Only the first player (main player) can buy items
+            print(f"\n{main_player.name}'s Shop Menu")
+
+            while True:
+                print(f"\nYour current status: {main_player}")
+                shop.display_items()
+                item_choice = shop.get_item_choice()
+
+                if item_choice is None:
+                    print("Exiting the shop. Thank you for visiting!")
+                    break
+                
+                quantity, total_cost = shop.get_quantity_choice(item_choice)
+                
+                if self.currency >= total_cost:
+                    self.currency -= total_cost
+                    main_player.buy_item(item_choice.capitalize(), quantity, shop.items[item_choice.capitalize()]["price"])
+                else:
+                    print("Not enough total currency to purchase that item.")
+
+            if input("\nDo you want to continue shopping? (yes/no): ").strip().lower() != "yes":
+                break
+
+        # After shopping, proceed with divergent paths
+        print("\nIt's now time to choose your path.")
+        path_choice = divergent_paths()
+        if not path_choice:  # If the player dies, exit the game
+            print("Game Over!")
+            return
+
+        # Loop through months
         while self.month <= 6:
-            if self.day == 1:  # Starting a new month
+            if self.day == 1:
                 self.skip_to_next_month()
 
             if self.month == 1 and self.day == 1:  # If it's the start of the game (Day 1)
                 print("\nDay 1: The adventure begins!")
+
+            # Player decision-making, simulate monthly events and progress
+            print(f"\nMonth {self.month}:")
             
-            # Loop for shopping on each day of the month
-            for player in self.players:
-                print(f"\n{player.name}'s Shop Menu")
+            if self.month == 3:
+                self.lake_event()
 
-                while True:
-                    # Show player status
-                    print(f"\nYour current status: {player}")
-                    
-                    # Display shop items
-                    shop.display_items()
+            if self.month == 4:
+                self.tragedy_event()
 
-                    # Let the player choose an item
-                    item_choice = shop.get_item_choice()
+            # Continue to next month
+            self.skip_to_next_month()
 
-                    if item_choice is None:
-                        print("Exiting the shop. Thank you for visiting!")
-                        break
-                    
-                    quantity, total_cost = shop.get_quantity_choice(item_choice)
-                    
-                    # Buy the item
-                    price_per_unit = shop.items[item_choice.capitalize()]["price"]
-                    player.buy_item(item_choice.capitalize(), quantity, price_per_unit)
+        print("\nThe journey is over. Congratulations on completing the Oregon Trail!")
 
-            if self.day == 7 and self.month == 1:  # Skip to Day 7 after the first week
-                self.skip_to_day_7()
+    def lake_event(self):
+        """Lake event logic"""
+        print("You have reached a lake. Do you want to risk crossing it or take the safer route around?")
+        decision = input("Do you want to risk crossing the lake? (yes/no): ").lower()
 
-            if self.day == 7:  # Once Day 7 is complete, skip to the next month
-                if self.month < 6:  # Move to the next month if we haven't reached Month 6
-                    self.skip_to_next_month()
+        if decision == "yes":
+            if random.random() < 0.5:
+                print("You successfully cross the lake and survive!")
+            else:
+                print("You failed to cross the lake and perish. Game Over!")
+                sys.exit()
+        elif decision == "no":
+            print("You take the safer route, but your journey is extended by an additional month.")
+        else:
+            print("Invalid input. Please choose 'yes' or 'no'.")
 
-            # Once the month is over, move to the next month
-            self.day = 1  # Reset day to 1 for the next month
+    def tragedy_event(self):
+        """Tragedy event logic"""
+        if len(self.players) >= 3:
+            print(f"Unfortunately, one of your companions has tragically died. The journey must continue without them.")
+            self.players.pop()  # Remove a companion from the party
 
-            print(f"\nThe day is over. It's the end of Month {self.month}, Day {self.day}. Moving on to the next month...\n")
 
 def start_screen():
     """Start screen to begin the game"""
@@ -181,21 +232,13 @@ def start_screen():
     print("\nPress ENTER to Start the Adventure")
     print("Press ESC to Exit")
     
-    # Wait for user input to start the game or quit
     while True:
         user_input = input("\nYour choice: ").strip().lower()
         
-        if user_input == "":  # User presses ENTER to start the game
-            print("\nStarting the game...\n")
-            game = Game()  # Create a Game instance
-            game.start_game()  # Start the game logic
+        if user_input == "":  # User presses ENTER to start
+            game = Game()
+            game.start_game()
             break
-        elif user_input == "esc":  # User types "ESC" to quit the game
-            print("\nExiting the game. Goodbye!")
-            sys.exit()
-        else:
-            print("\nInvalid input. Please press ENTER to start or ESC to exit.")
-
-# Run the start screen
-if __name__ == "__main__":
-    start_screen()
+        elif user_input == "esc":  # User presses ESC to exit
+            print("Exiting the game.")
+            break
